@@ -216,3 +216,27 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ReqPilot AI
+.env
+.env.*
+!.env.example
+
+# Frontend
+node_modules/
+dist/
+.vite/
+
+# IDE
+.idea/
+.vscode/
+
+# Runtime data
+logs/
+uploads/
+tmp/
+models/
+
+# Local database
+*.db
+*.sqlite3

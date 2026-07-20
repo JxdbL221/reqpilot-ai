@@ -1,0 +1,5 @@
+# FastAPI Web 框架
+fastapi==0.139.2
+
+# 运行 FastAPI 应用的 ASGI 服务器
+uvicorn[standard]==0.51.0

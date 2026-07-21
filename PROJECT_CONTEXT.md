@@ -34,7 +34,21 @@ ReqPilot AI
 
 ## 当前阶段
 
-项目初始化与基础技术训练阶段。
+基础后端已初始化，首个健康检查接口及自动化测试已合并。当前处于项目规范完善与下一功能切片设计阶段。
+
+## 当前实现基线
+
+- FastAPI 应用入口：`apps/backend/app/main.py`
+- 健康检查接口：`GET /api/v1/health`
+- 后端自动化测试：`tests/backend/test_health.py`
+- 已完成 GitHub Issue #1，并通过 PR #2 合并到 `main`
+- 后续开发继续采用 Issue → 分支 → 编码 → 测试 → Commit → Push → PR → Merge 流程
+
+## 近期重点
+
+1. 保持 `AGENTS.md`、`PROGRESS.md`、`CHANGELOG.md` 与仓库状态一致
+2. 将需求文档导入与解析拆分为可独立验证的最小功能切片
+3. 在增加大模型能力前建立可测试的接口、数据结构和 Mock Provider
 
 ## 开发原则
 
@@ -42,3 +56,4 @@ ReqPilot AI
 - AI 输出必须采用结构化数据并经过校验
 - API Key、密码和真实用户数据不得提交到 GitHub
 - 每周更新进度、测试结果和项目文档
+- 未经确认不直接提交、推送、合并或部署变更

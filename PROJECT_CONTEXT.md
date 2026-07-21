@@ -34,7 +34,7 @@ ReqPilot AI
 
 ## 当前阶段
 
-基础后端已初始化，首个健康检查接口及自动化测试已合并。当前处于项目规范完善与下一功能切片设计阶段。
+基础后端和健康检查接口已完成，当前正在实现 TXT 需求文档上传、校验与内存解析，逐步建立需求文档导入能力。
 
 ## 当前实现基线
 
@@ -43,6 +43,11 @@ ReqPilot AI
 - 后端自动化测试：`tests/backend/test_health.py`
 - 已完成 GitHub Issue #1，并通过 PR #2 合并到 `main`
 - 后续开发继续采用 Issue → 分支 → 编码 → 测试 → Commit → Push → PR → Merge 流程
+- TXT 文档上传接口：`POST /api/v1/documents/upload`
+- 文档接口层：`apps/backend/app/api/documents.py`
+- 文档响应模型：`apps/backend/app/schemas/document.py`
+- TXT 解析服务：`apps/backend/app/services/document_parser.py`
+- 文档上传测试：`tests/backend/test_documents.py`
 
 ## 近期重点
 

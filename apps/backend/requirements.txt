@@ -3,3 +3,6 @@ fastapi==0.139.2
 
 # 运行 FastAPI 应用的 ASGI 服务器
 uvicorn[standard]==0.51.0
+
+# 解析 multipart/form-data 文件上传请求
+python-multipart==0.0.20

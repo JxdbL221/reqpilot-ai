@@ -1,4 +1,5 @@
 # 后端主入口：定义 FastAPI 应用、健康检查响应模型及健康检查路由
+from apps.backend.app.api.documents import router as documents_router
 from typing import Literal
 
 from fastapi import FastAPI
@@ -17,6 +18,8 @@ app = FastAPI(
     description="软件需求分析与测试用例生成及追踪平台后端接口",
     version="0.1.0",
 )
+# 注册需求文档相关接口
+app.include_router(documents_router)
 
 
 # 健康检查接口，返回服务运行状态（用于负载均衡或运维检测）

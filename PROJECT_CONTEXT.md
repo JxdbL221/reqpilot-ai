@@ -34,9 +34,9 @@ ReqPilot AI
 
 ## 当前阶段
 
-基础后端、健康检查接口以及 TXT 需求文档上传与内存解析功能已经完成。
+基础后端、健康检查接口、TXT 需求文档上传与内存解析功能已经完成。
 
-当前正在 Issue #8 的功能分支中实现需求文本预处理接口，将原始多行需求文本清理并转换为结构化需求条目。该功能尚未合并到 `main`。
+需求文本预处理接口已经实现并通过自动化测试，可以将原始多行需求文本清理并转换为结构化需求条目。当前正在继续建立需求质量检测所需的数据模型、结构化接口和 Mock 逻辑。
 
 ## main 分支实现基线
 
@@ -52,10 +52,9 @@ ReqPilot AI
 - TXT 文档上传与解析功能已通过 PR #7 合并
 - 项目继续采用 Issue → 分支 → 编码 → 测试 → Commit → Push → PR → Merge 流程
 
-## 当前功能分支
+## 需求文本预处理实现
 
 - Issue：#8 添加需求文本预处理接口
-- 分支：`feat/8-requirement-preprocessing`
 - 接口：`POST /api/v1/requirements/preprocess`
 - 接口层：`apps/backend/app/api/requirements.py`
 - 数据模型：`apps/backend/app/schemas/requirement.py`
@@ -76,11 +75,11 @@ ReqPilot AI
 
 ## 近期重点
 
-1. 完成 Issue #8 的自动化测试和全部回归测试
-2. 同步更新 `PROGRESS.md` 和 `CHANGELOG.md`
-3. 通过代码差异与格式检查
-4. 提交并创建 PR，将 Issue #8 合并到 `main`
-5. 在增加真实大模型能力前，继续建立可测试的接口、数据结构和 Mock Provider
+1. 设计需求质量检测所需的结构化输入和输出模型
+2. 建立可独立测试的质量检测 Service 和 Mock Provider
+3. 为歧义、遗漏、冲突和不可测试问题设计检测结果结构
+4. 在结构化接口和测试稳定后再接入真实大模型
+5. 保持 `PROGRESS.md`、`CHANGELOG.md` 和仓库实现状态一致
 
 ## 开发原则
 

@@ -34,31 +34,59 @@ ReqPilot AI
 
 ## 当前阶段
 
-基础后端和健康检查接口已完成，当前正在实现 TXT 需求文档上传、校验与内存解析，逐步建立需求文档导入能力。
+基础后端、健康检查接口以及 TXT 需求文档上传与内存解析功能已经完成。
 
-## 当前实现基线
+当前正在 Issue #8 的功能分支中实现需求文本预处理接口，将原始多行需求文本清理并转换为结构化需求条目。该功能尚未合并到 `main`。
+
+## main 分支实现基线
 
 - FastAPI 应用入口：`apps/backend/app/main.py`
 - 健康检查接口：`GET /api/v1/health`
-- 后端自动化测试：`tests/backend/test_health.py`
-- 已完成 GitHub Issue #1，并通过 PR #2 合并到 `main`
-- 后续开发继续采用 Issue → 分支 → 编码 → 测试 → Commit → Push → PR → Merge 流程
 - TXT 文档上传接口：`POST /api/v1/documents/upload`
 - 文档接口层：`apps/backend/app/api/documents.py`
 - 文档响应模型：`apps/backend/app/schemas/document.py`
 - TXT 解析服务：`apps/backend/app/services/document_parser.py`
+- 健康检查测试：`tests/backend/test_health.py`
 - 文档上传测试：`tests/backend/test_documents.py`
+- GitHub Issue #1 已通过 PR #2 合并
+- TXT 文档上传与解析功能已通过 PR #7 合并
+- 项目继续采用 Issue → 分支 → 编码 → 测试 → Commit → Push → PR → Merge 流程
+
+## 当前功能分支
+
+- Issue：#8 添加需求文本预处理接口
+- 分支：`feat/8-requirement-preprocessing`
+- 接口：`POST /api/v1/requirements/preprocess`
+- 接口层：`apps/backend/app/api/requirements.py`
+- 数据模型：`apps/backend/app/schemas/requirement.py`
+- 预处理服务：`apps/backend/app/services/requirement_preprocessor.py`
+- 自动化测试：`tests/backend/test_requirements.py`
+
+### 当前预处理规则
+
+1. 统一处理 `\r\n`、`\n` 和 `\r` 换行符
+2. 清理每行首尾空白
+3. 删除空行
+4. 将每个非空行视为一条需求
+5. 保留需求原始顺序
+6. 生成从 1 开始的连续序号
+7. 全空白文本返回 HTTP 400
+
+当前版本不包含智能语义分句、需求分类、质量检测、大模型调用和数据库存储。
 
 ## 近期重点
 
-1. 保持 `AGENTS.md`、`PROGRESS.md`、`CHANGELOG.md` 与仓库状态一致
-2. 将需求文档导入与解析拆分为可独立验证的最小功能切片
-3. 在增加大模型能力前建立可测试的接口、数据结构和 Mock Provider
+1. 完成 Issue #8 的自动化测试和全部回归测试
+2. 同步更新 `PROGRESS.md` 和 `CHANGELOG.md`
+3. 通过代码差异与格式检查
+4. 提交并创建 PR，将 Issue #8 合并到 `main`
+5. 在增加真实大模型能力前，继续建立可测试的接口、数据结构和 Mock Provider
 
 ## 开发原则
 
-- 先完成可运行的 MVP，再增加扩展功能
+- 先完成可运行、可测试的最小功能切片，再扩展复杂功能
 - AI 输出必须采用结构化数据并经过校验
 - API Key、密码和真实用户数据不得提交到 GitHub
+- 新功能必须包含适当的自动化测试
 - 每周更新进度、测试结果和项目文档
 - 未经确认不直接提交、推送、合并或部署变更

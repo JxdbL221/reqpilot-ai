@@ -14,10 +14,14 @@
 - 添加健康检查响应模型和自动化测试
 - 添加 FastAPI、Uvicorn、pytest 和 httpx 依赖配置
 - 添加项目级 `AGENTS.md` 协作规范
-- 
+
 - 添加 `POST /api/v1/documents/upload` TXT 需求文档上传与解析接口
 - 添加 TXT 文件类型、大小、空内容和 UTF-8 编码校验
 - 添加需求文档上传成功及异常场景自动化测试
+
+- 新增 `POST /api/v1/requirements/preprocess` 接口，可将原始需求文本清理并转换为结构化需求条目。
+- 支持统一不同系统的换行符、过滤空行和清理每行首尾空白。
+- 全空白需求文本返回 HTTP 400。
 
 ### Changed
 

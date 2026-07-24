@@ -55,7 +55,9 @@ ReqPilot AI
 - 健康检查测试：`tests/backend/test_health.py`
 - 文档上传测试：`tests/backend/test_documents.py`
 - GitHub Issue #1 已通过 PR #2 合并
-- TXT 文档上传与解析功能已通过 PR #7 合并
+- GitHub Issue #6 已通过 PR #7 合并并关闭
+- GitHub Issue #8 已通过 PR #9 合并
+- GitHub Issue #10 已通过 PR #11 合并并关闭
 - 项目继续采用 Issue → 分支 → 编码 → 测试 → Commit → Push → PR → Merge 流程
 
 ## 需求文本预处理实现
@@ -102,9 +104,9 @@ ReqPilot AI
 
 ## 近期重点
 
-1. 完成 Issue #10 的代码审查、提交、PR 和合并流程
-2. 将真实 LLM Provider 作为独立 Issue 设计和实现
-3. 为真实模型调用补充结构化输出校验、超时、重试和失败降级
+1. 将真实 LLM Provider 作为独立 Issue 设计和实现
+2. 为真实模型调用补充结构化输出校验、超时、重试和失败降级
+3. 分离无网络单元测试与真实模型集成测试
 4. 继续保持 `PROGRESS.md`、`CHANGELOG.md` 和仓库实现状态一致
 
 ## 开发原则

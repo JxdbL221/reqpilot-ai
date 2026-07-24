@@ -11,6 +11,7 @@
   - 全空白文本返回 HTTP 400
   - 已添加自动化测试
 - 需求质量检测模型与 Mock 接口
+  - Issue #10 已通过 PR #11 合并
   - 新增 `POST /api/v1/requirements/quality-check`
   - 定义结构化请求、问题类型、严重程度和响应模型
   - 校验空列表、空白内容、非法序号、重复序号和错误字段类型
@@ -22,11 +23,10 @@
 
 ## 正在进行
 
-- 执行 Issue #10 最终验收和代码审查
-- 等待确认后完成 Commit、Push 和 Pull Request
+- 规划真实 LLM Provider 的结构化输出、超时、重试和失败降级方案
 
 ## 下一步
 
-- 合并 Issue #10 对应 Pull Request
-- 为真实 LLM Provider 单独创建和细化 Issue
-- 设计真实模型的结构化输出校验、超时、重试和失败降级
+- 为真实 LLM Provider 创建并细化独立 Issue
+- 实现不影响现有 API 和 Service 的真实 Provider
+- 分开维护无网络单元测试与真实模型集成测试

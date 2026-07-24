@@ -10,14 +10,23 @@
   - 生成从 1 开始的连续序号
   - 全空白文本返回 HTTP 400
   - 已添加自动化测试
+- 需求质量检测模型与 Mock 接口
+  - 新增 `POST /api/v1/requirements/quality-check`
+  - 定义结构化请求、问题类型、严重程度和响应模型
+  - 校验空列表、空白内容、非法序号、重复序号和错误字段类型
+  - 定义独立的 `RequirementQualityProvider` 协议
+  - 使用确定性 Mock 规则检测歧义、遗漏、冲突和不可测试问题
+  - Service 通过依赖注入调用 Provider 并统计结果
+  - 新增 Schema、Provider、Service 和 API 自动化测试
+  - 当前完整测试共 30 项并全部通过
 
 ## 正在进行
 
-- 设计需求质量检测的数据模型和最小功能切片
+- 执行 Issue #10 最终验收和代码审查
+- 等待确认后完成 Commit、Push 和 Pull Request
 
 ## 下一步
 
-- 设计需求质量检测的数据模型
-- 建立质量检测 Service 和 Mock Provider
-- 为质量检测功能编写自动化测试
-- 暂不接入真实大模型
+- 合并 Issue #10 对应 Pull Request
+- 为真实 LLM Provider 单独创建和细化 Issue
+- 设计真实模型的结构化输出校验、超时、重试和失败降级

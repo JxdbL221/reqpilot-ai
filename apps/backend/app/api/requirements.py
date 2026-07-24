@@ -1,8 +1,20 @@
-from fastapi import APIRouter, HTTPException, status  # 导入 FastAPI 的 APIRouter、HTTPException 和 status 常量
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException, status  # 导入 FastAPI 的路由、依赖注入、异常和状态码工具
+
+from apps.backend.app.providers.requirement_quality import (
+    MockRequirementQualityProvider,
+    RequirementQualityProvider,
+)
 
 from apps.backend.app.schemas.requirement import (
     RequirementPreprocessRequest,
     RequirementPreprocessResponse,
+    RequirementQualityCheckRequest,
+    RequirementQualityCheckResponse,
+)
+from apps.backend.app.services.requirement_quality_checker import (
+    check_requirement_quality,
 )
 from apps.backend.app.services.requirement_preprocessor import (  # 从 Service 层导入预处理函数与自定义异常
     EmptyRequirementTextError,  # 自定义异常：当请求中没有需求文本时抛出
@@ -10,6 +22,12 @@ from apps.backend.app.services.requirement_preprocessor import (  # 从 Service 
 )
 
 router = APIRouter(prefix="/requirements", tags=["requirements"])  # 创建路由器实例，所有路由以 /requirements 为前缀
+
+
+def get_requirement_quality_provider() -> RequirementQualityProvider:
+    """提供当前启用的质量检测实现，后续可替换为真实 LLM Provider。"""
+
+    return MockRequirementQualityProvider()
 
 
 # 定义 POST /requirements/preprocess 路由，用于对需求文本进行预处理
@@ -36,7 +54,25 @@ def preprocess_requirement_text(  # 视图函数：处理预处理请求
         requirements=requirements,  # 响应中包含具体的需求条目列表
     )  # 返回结束
 
+# 预处理接口职责：
 # 接收并校验 JSON 请求体；
 # 调用 Service 层处理文本；
 # 将业务异常转换为 HTTP 400；
 # 构造符合 Schema 的响应。
+
+
+@router.post(
+    "/quality-check",
+    response_model=RequirementQualityCheckResponse,
+    status_code=status.HTTP_200_OK,
+)
+def quality_check_requirements(
+    request: RequirementQualityCheckRequest,
+    provider: Annotated[
+        RequirementQualityProvider,
+        Depends(get_requirement_quality_provider),
+    ],
+) -> RequirementQualityCheckResponse:
+    """检测结构化需求的质量问题并返回统一报告。"""
+
+    return check_requirement_quality(request.requirements, provider)

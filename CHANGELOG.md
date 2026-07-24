@@ -23,6 +23,12 @@
 - 支持统一不同系统的换行符、过滤空行和清理每行首尾空白。
 - 全空白需求文本返回 HTTP 400。
 
+- 新增 `POST /api/v1/requirements/quality-check` 需求质量检测接口。
+- 新增歧义、遗漏、冲突和不可测试四类结构化质量问题模型。
+- 新增 Provider 协议、确定性 Mock Provider 和质量检测 Service。
+- 新增空列表、空白内容、非法序号、重复序号和字段类型校验。
+- 新增 Schema、Provider、Service 和 API 自动化测试。
+
 ### Changed
 
 - 更新项目进度、当前阶段和 GitHub 工作流记录

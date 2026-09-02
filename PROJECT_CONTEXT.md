@@ -38,9 +38,11 @@ ReqPilot AI
 
 需求文本预处理接口已经实现并通过自动化测试，可以将原始多行需求文本清理并转换为结构化需求条目。
 
-需求质量检测的数据模型、分层结构、确定性 Mock Provider 和 HTTP 接口已经完成，可以对结构化需求返回歧义、遗漏、冲突和不可测试问题。当前版本仍未接入真实大语言模型。
+需求质量检测的数据模型、分层结构、确定性 Mock Provider 和 HTTP 接口已经完成，可以对结构化需求返回歧义、遗漏、冲突和不可测试问题。
 
-## main 分支实现基线
+Issue #14 已实现 OpenAI-compatible 真实模型 Provider，可通过环境变量在 Mock 与真实模型之间切换。真实模型输出会经过 JSON 解析、Pydantic Schema 校验和需求序号校验；配置、超时及上游服务错误也会转换为明确的 HTTP 状态码。离线自动化测试、真实 DeepSeek 成功调用以及无效 API Key 错误映射均已完成验证。
+
+## 当前实现基线
 
 - FastAPI 应用入口：`apps/backend/app/main.py`
 - 健康检查接口：`GET /api/v1/health`
@@ -51,6 +53,8 @@ ReqPilot AI
 - 文档响应模型：`apps/backend/app/schemas/document.py`
 - TXT 解析服务：`apps/backend/app/services/document_parser.py`
 - 质量检测 Provider：`apps/backend/app/providers/requirement_quality.py`
+- OpenAI-compatible Provider：`apps/backend/app/providers/openai_compatible_requirement_quality.py`
+- 模型配置加载：`apps/backend/app/config.py`
 - 质量检测 Service：`apps/backend/app/services/requirement_quality_checker.py`
 - 健康检查测试：`tests/backend/test_health.py`
 - 文档上传测试：`tests/backend/test_documents.py`
@@ -102,12 +106,34 @@ ReqPilot AI
 
 当前 Mock 仅用于验证分层、接口和测试流程，不代表生产级自然语言检测能力。
 
+## OpenAI-compatible 真实 Provider 实现
+
+- Issue：#14 添加 OpenAI-compatible 需求质量检测 Provider
+- 配置：`apps/backend/app/config.py`
+- Provider：`apps/backend/app/providers/openai_compatible_requirement_quality.py`
+- 配置测试：`tests/backend/test_requirement_quality_config.py`
+- Provider 测试：`tests/backend/test_openai_compatible_requirement_quality_provider.py`
+
+### 调用与校验流程
+
+1. `REQUIREMENT_QUALITY_PROVIDER` 默认使用 `mock`，设置为 `openai_compatible` 时启用真实模型
+2. API 层根据配置创建 Provider，Service 仍只依赖统一的 Provider 协议
+3. Provider 要求模型返回 JSON，并将结果交给 Pydantic Schema 校验
+4. Provider 额外检查模型返回的需求序号是否存在于本次请求中
+5. 配置错误返回 HTTP 503，模型超时返回 HTTP 504，上游服务或非法模型输出返回 HTTP 502
+6. 真实模型失败时不静默降级为 Mock，避免把规则结果误认为真实 AI 结果
+7. 自动化测试使用 Fake Client 模拟 SDK 返回，不访问网络、不使用 API Key、不消耗 Token
+8. 单次请求最多包含 100 条需求，单条最多 5000 字符，总计最多 50000 字符
+9. 需求正文以不可信 JSON 数据传给模型，Prompt 明确禁止执行正文中的指令
+10. Provider 在进程内复用同一个 SDK Client，应用关闭时释放 HTTP 连接池
+11. 模型响应被截断、SDK 无法解析、说明为空白或关联序号非法时统一拒绝结果
+
+真实 DeepSeek 成功调用已手动验证为 HTTP 200，无效但非空的 API Key 已手动验证为 HTTP 502 且未降级为 Mock。手动集成验证不计入无网络 pytest 的通过结论，真实 API Key 未写入仓库、测试数据或文档。
+
 ## 近期重点
 
-1. 将真实 LLM Provider 作为独立 Issue 设计和实现
-2. 为真实模型调用补充结构化输出校验、超时、重试和失败降级
-3. 分离无网络单元测试与真实模型集成测试
-4. 继续保持 `PROGRESS.md`、`CHANGELOG.md` 和仓库实现状态一致
+1. 完成 Issue #14 的代码审查与交付流程
+2. 根据 MVP 路线选择下一个独立功能 Issue
 
 ## 开发原则
 

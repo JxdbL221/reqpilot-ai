@@ -1,7 +1,18 @@
 from enum import StrEnum
 from typing import Annotated, Self
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_validator,
+)
+
+
+MAX_QUALITY_REQUIREMENTS = 100
+MAX_QUALITY_REQUIREMENT_CHARACTERS = 5_000
+MAX_QUALITY_REQUEST_CHARACTERS = 50_000
 
 
 class RequirementPreprocessRequest(BaseModel):
@@ -55,6 +66,7 @@ class RequirementQualityCheckRequest(BaseModel):
 
     requirements: list[RequirementItem] = Field(
         min_length=1,
+        max_length=MAX_QUALITY_REQUIREMENTS,
         description="至少包含一条、序号不重复的结构化需求",
     )
 
@@ -65,11 +77,31 @@ class RequirementQualityCheckRequest(BaseModel):
         sequences = [requirement.sequence for requirement in self.requirements]
         if len(sequences) != len(set(sequences)):
             raise ValueError("需求序号不能重复")
+
+        if any(
+            len(requirement.content) > MAX_QUALITY_REQUIREMENT_CHARACTERS
+            for requirement in self.requirements
+        ):
+            raise ValueError(
+                "单条需求内容不能超过 "
+                f"{MAX_QUALITY_REQUIREMENT_CHARACTERS} 个字符"
+            )
+
+        total_characters = sum(
+            len(requirement.content) for requirement in self.requirements
+        )
+        if total_characters > MAX_QUALITY_REQUEST_CHARACTERS:
+            raise ValueError(
+                "单次质量检测的需求总字符数不能超过 "
+                f"{MAX_QUALITY_REQUEST_CHARACTERS}"
+            )
         return self
 
 
 class RequirementQualityIssue(BaseModel):
     """质量检测发现的一条结构化问题。"""
+
+    model_config = ConfigDict(extra="forbid")
 
     issue_type: RequirementIssueType = Field(description="问题类型")
     severity: RequirementIssueSeverity = Field(description="问题严重程度")
@@ -78,6 +110,36 @@ class RequirementQualityIssue(BaseModel):
     )
     description: str = Field(min_length=1, description="问题说明")
     suggestion: str = Field(min_length=1, description="修改建议")
+
+    @field_validator("description", "suggestion")
+    @classmethod
+    def validate_explanation_is_not_blank(cls, value: str) -> str:
+        """拒绝模型用纯空白字符串伪装成有效的问题说明或建议。"""
+
+        if not value.strip():
+            raise ValueError("问题说明和修改建议不能为空")
+        return value
+
+    @model_validator(mode="after")
+    def validate_related_sequences_are_meaningful(self) -> Self:
+        """关联序号不得重复，且只有文档级遗漏可以不关联具体需求。"""
+
+        if len(self.related_sequences) != len(set(self.related_sequences)):
+            raise ValueError("关联需求序号不能重复")
+        if (
+            self.issue_type is not RequirementIssueType.OMISSION
+            and not self.related_sequences
+        ):
+            raise ValueError("非遗漏问题必须关联至少一条需求")
+        return self
+
+
+class RequirementQualityModelOutput(BaseModel):
+    """真实模型必须返回的 JSON 外层结构。"""
+
+    model_config = ConfigDict(extra="forbid")
+
+    issues: list[RequirementQualityIssue] = Field(description="质量问题列表")
 
 
 class RequirementQualityCheckResponse(BaseModel):

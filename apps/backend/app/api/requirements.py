@@ -1,10 +1,22 @@
+from functools import lru_cache
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status  # 导入 FastAPI 的路由、依赖注入、异常和状态码工具
 
+from apps.backend.app.config import (
+    RequirementQualityConfigurationError,
+    RequirementQualityProviderName,
+    load_requirement_quality_settings,
+)
+from apps.backend.app.providers.openai_compatible_requirement_quality import (
+    OpenAICompatibleRequirementQualityProvider,
+)
 from apps.backend.app.providers.requirement_quality import (
     MockRequirementQualityProvider,
+    RequirementQualityInvalidResponseError,
     RequirementQualityProvider,
+    RequirementQualityTimeoutError,
+    RequirementQualityUpstreamError,
 )
 
 from apps.backend.app.schemas.requirement import (
@@ -24,10 +36,35 @@ from apps.backend.app.services.requirement_preprocessor import (  # 从 Service 
 router = APIRouter(prefix="/requirements", tags=["requirements"])  # 创建路由器实例，所有路由以 /requirements 为前缀
 
 
+@lru_cache(maxsize=1)
 def get_requirement_quality_provider() -> RequirementQualityProvider:
-    """提供当前启用的质量检测实现，后续可替换为真实 LLM Provider。"""
+    """根据环境配置提供 Mock 或真实 LLM 质量检测实现。"""
 
-    return MockRequirementQualityProvider()
+    try:
+        settings = load_requirement_quality_settings()
+    except RequirementQualityConfigurationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="需求质量检测服务配置不可用",
+        ) from exc
+
+    if settings.provider is RequirementQualityProviderName.MOCK:
+        return MockRequirementQualityProvider()
+
+    return OpenAICompatibleRequirementQualityProvider(settings)
+
+
+def close_requirement_quality_provider() -> None:
+    """在应用关闭时释放缓存 Provider 持有的外部资源。"""
+
+    if get_requirement_quality_provider.cache_info().currsize == 0:
+        return
+
+    provider = get_requirement_quality_provider()
+    close = getattr(provider, "close", None)
+    if callable(close):
+        close()
+    get_requirement_quality_provider.cache_clear()
 
 
 # 定义 POST /requirements/preprocess 路由，用于对需求文本进行预处理
@@ -75,4 +112,20 @@ def quality_check_requirements(
 ) -> RequirementQualityCheckResponse:
     """检测结构化需求的质量问题并返回统一报告。"""
 
-    return check_requirement_quality(request.requirements, provider)
+    try:
+        return check_requirement_quality(request.requirements, provider)
+    except RequirementQualityTimeoutError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+            detail="需求质量检测模型响应超时",
+        ) from exc
+    except RequirementQualityUpstreamError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="需求质量检测模型服务不可用",
+        ) from exc
+    except RequirementQualityInvalidResponseError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="需求质量检测模型返回了不可用内容",
+        ) from exc

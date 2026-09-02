@@ -28,8 +28,19 @@
 - 新增 Provider 协议、确定性 Mock Provider 和质量检测 Service。
 - 新增空列表、空白内容、非法序号、重复序号和字段类型校验。
 - 新增 Schema、Provider、Service 和 API 自动化测试。
+- 新增 OpenAI-compatible 需求质量检测 Provider，可通过环境变量连接兼容模型服务。
+- 新增真实模型配置加载与校验，覆盖 API Key、Base URL、模型、超时、重试和最大输出 Token。
+- 新增模型 JSON 输出的 Pydantic Schema 校验与需求序号校验。
+- 新增 Fake Client 离线测试，无需访问网络或消耗模型 Token。
+- 新增质量检测请求数量与字符数上限，避免超大 Prompt 带来的成本和延迟风险。
+- 新增模型响应完成状态、空白文本和关联序号语义校验。
+- 新增 SDK Client 进程内复用及应用关闭清理。
 
 ### Changed
 
 - 更新项目进度、当前阶段和 GitHub 工作流记录
 - 将需求文档接口、响应模型和解析逻辑拆分为 API、Schema 和 Service 层
+- 需求质量检测接口支持通过配置选择 Mock 或 OpenAI-compatible Provider，默认保持 Mock。
+- 配置错误、模型超时及上游服务错误分别映射为 HTTP 503、504 和 502，且真实模型失败时不静默降级为 Mock。
+- 后端新增 `openai==2.50.0` 依赖。
+- 真实 Provider 将需求作为不可信 JSON 数据传入 Prompt，并明确禁止执行需求正文中的指令。

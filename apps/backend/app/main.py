@@ -1,10 +1,24 @@
 # 后端主入口：定义 FastAPI 应用、健康检查响应模型及健康检查路由
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from typing import Literal
 
 from fastapi import FastAPI
 from pydantic import BaseModel
+
 from apps.backend.app.api.documents import router as documents_router
-from apps.backend.app.api.requirements import router as requirements_router
+from apps.backend.app.api.requirements import (
+    close_requirement_quality_provider,
+    router as requirements_router,
+)
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    """应用关闭时释放真实模型 Provider 的连接池。"""
+
+    yield
+    close_requirement_quality_provider()
 
 # 健康检查响应模型，使用 Pydantic 验证返回结构
 class HealthResponse(BaseModel):
@@ -17,6 +31,7 @@ app = FastAPI(
     title="ReqPilot AI API",
     description="软件需求分析与测试用例生成及追踪平台后端接口",
     version="0.1.0",
+    lifespan=lifespan,
 )
 app.include_router(requirements_router, prefix="/api/v1")
 # 注册需求文档相关接口

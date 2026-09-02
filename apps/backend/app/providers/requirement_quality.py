@@ -9,6 +9,22 @@ from apps.backend.app.schemas.requirement import (
 )
 
 
+class RequirementQualityProviderError(RuntimeError):
+    """需求质量检测 Provider 的统一领域异常。"""
+
+
+class RequirementQualityTimeoutError(RequirementQualityProviderError):
+    """上游模型请求超时。"""
+
+
+class RequirementQualityUpstreamError(RequirementQualityProviderError):
+    """上游模型连接失败或返回错误状态。"""
+
+
+class RequirementQualityInvalidResponseError(RequirementQualityProviderError):
+    """上游模型返回的内容无法作为质量检测结果使用。"""
+
+
 class RequirementQualityProvider(Protocol):
     """需求质量检测能力必须遵守的统一接口。"""
 

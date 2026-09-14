@@ -35,6 +35,12 @@
 - 新增质量检测请求数量与字符数上限，避免超大 Prompt 带来的成本和延迟风险。
 - 新增模型响应完成状态、空白文本和关联序号语义校验。
 - 新增 SDK Client 进程内复用及应用关闭清理。
+- 新增 `POST /api/v1/test-cases/generate` 测试用例生成接口。
+- 新增正常、异常、边界和状态四类测试场景及 `p0`、`p1`、`p2` 优先级。
+- 新增可追踪的测试用例、测试步骤、Provider 协议、确定性 Mock Provider 和 Service。
+- 新增测试用例编号、需求关联、步骤顺序和需求覆盖完整性校验。
+- 新增测试用例生成的 Schema、Provider、Service 和 API 自动化测试。
+- 新增 `pytest.ini`，将 pytest 自动收集范围限定在 `tests/` 目录。
 
 ### Changed
 

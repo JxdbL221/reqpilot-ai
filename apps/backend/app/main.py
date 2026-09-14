@@ -11,6 +11,7 @@ from apps.backend.app.api.requirements import (
     close_requirement_quality_provider,
     router as requirements_router,
 )
+from apps.backend.app.api.test_cases import router as test_cases_router
 
 
 @asynccontextmanager
@@ -34,6 +35,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 app.include_router(requirements_router, prefix="/api/v1")
+app.include_router(test_cases_router, prefix="/api/v1")
 # 注册需求文档相关接口
 app.include_router(documents_router)
 

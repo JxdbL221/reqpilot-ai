@@ -42,6 +42,8 @@ ReqPilot AI
 
 Issue #14 已实现 OpenAI-compatible 真实模型 Provider，可通过环境变量在 Mock 与真实模型之间切换。真实模型输出会经过 JSON 解析、Pydantic Schema 校验和需求序号校验；配置、超时及上游服务错误也会转换为明确的 HTTP 状态码。离线自动化测试、真实 DeepSeek 成功调用以及无效 API Key 错误映射均已完成验证。
 
+Issue #16 已在本地实现测试用例生成的数据模型、分层结构、确定性 Mock Provider 和 HTTP 接口。当前可为每条结构化需求生成正常、异常、边界和状态四类模板用例；每条用例显式保留来源需求序号，为后续真实模型接入、人工审核和追踪矩阵提供稳定边界。
+
 ## 当前实现基线
 
 - FastAPI 应用入口：`apps/backend/app/main.py`
@@ -49,6 +51,7 @@ Issue #14 已实现 OpenAI-compatible 真实模型 Provider，可通过环境变
 - TXT 文档上传接口：`POST /api/v1/documents/upload`
 - 需求文本预处理接口：`POST /api/v1/requirements/preprocess`
 - 需求质量检测接口：`POST /api/v1/requirements/quality-check`
+- 测试用例生成接口：`POST /api/v1/test-cases/generate`
 - 文档接口层：`apps/backend/app/api/documents.py`
 - 文档响应模型：`apps/backend/app/schemas/document.py`
 - TXT 解析服务：`apps/backend/app/services/document_parser.py`
@@ -56,12 +59,16 @@ Issue #14 已实现 OpenAI-compatible 真实模型 Provider，可通过环境变
 - OpenAI-compatible Provider：`apps/backend/app/providers/openai_compatible_requirement_quality.py`
 - 模型配置加载：`apps/backend/app/config.py`
 - 质量检测 Service：`apps/backend/app/services/requirement_quality_checker.py`
+- 测试用例数据模型：`apps/backend/app/schemas/test_case.py`
+- 测试用例生成 Provider：`apps/backend/app/providers/test_case_generation.py`
+- 测试用例生成 Service：`apps/backend/app/services/test_case_generator.py`
 - 健康检查测试：`tests/backend/test_health.py`
 - 文档上传测试：`tests/backend/test_documents.py`
 - GitHub Issue #1 已通过 PR #2 合并
 - GitHub Issue #6 已通过 PR #7 合并并关闭
 - GitHub Issue #8 已通过 PR #9 合并
 - GitHub Issue #10 已通过 PR #11 合并并关闭
+- GitHub Issue #14 已通过 PR #15 合并并关闭
 - 项目继续采用 Issue → 分支 → 编码 → 测试 → Commit → Push → PR → Merge 流程
 
 ## 需求文本预处理实现
@@ -130,10 +137,31 @@ Issue #14 已实现 OpenAI-compatible 真实模型 Provider，可通过环境变
 
 真实 DeepSeek 成功调用已手动验证为 HTTP 200，无效但非空的 API Key 已手动验证为 HTTP 502 且未降级为 Mock。手动集成验证不计入无网络 pytest 的通过结论，真实 API Key 未写入仓库、测试数据或文档。
 
+## 测试用例生成 Mock 实现
+
+- Issue：#16 添加测试用例生成模型与 Mock 接口
+- 接口：`POST /api/v1/test-cases/generate`
+- 数据模型：`apps/backend/app/schemas/test_case.py`
+- Provider 协议与 Mock：`apps/backend/app/providers/test_case_generation.py`
+- Service：`apps/backend/app/services/test_case_generator.py`
+- API 测试：`tests/backend/test_test_case_generation_api.py`
+
+### 当前测试用例生成边界
+
+1. 请求接收至少一条带唯一正整数序号的结构化需求
+2. 单次最多 100 条需求，单条最多 5000 字符，总计最多 50000 字符
+3. 用例场景限定为 `normal`、`exception`、`boundary` 和 `state`
+4. 优先级限定为 `p0`、`p1` 和 `p2`
+5. 每个步骤保存操作及其对应的预期结果，步骤序号必须从 1 连续递增
+6. 用例编号在一次响应中唯一，每条用例至少关联一条来源需求
+7. Service 拒绝 Provider 返回的重复编号、请求外需求关联和未覆盖需求
+8. Mock 为每条需求机械生成四类固定模板，只验证数据结构和调用流程，不代表真实 AI 测试设计能力
+9. 真实 LLM、数据库、人工审核、导出和前端不属于本 Issue 范围
+
 ## 近期重点
 
-1. 完成 Issue #14 的代码审查与交付流程
-2. 根据 MVP 路线选择下一个独立功能 Issue
+1. 完成 Issue #16 的代码审查与交付流程
+2. 为测试用例生成接入 OpenAI-compatible 真实 LLM Provider
 
 ## 开发原则
 
